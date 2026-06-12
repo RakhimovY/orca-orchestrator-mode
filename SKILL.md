@@ -43,6 +43,7 @@ Exact sequence (details in the `orchestration` skill):
 Before any (re)dispatch: `dispatch-show --task <id>` - never double-dispatch a live handle.
 After `worker_done`: the coordinator MUST close the task itself - `task-update --id <task_id> --status completed --json` (verified live: status does NOT flip automatically, tasks dangle as "dispatched").
 Disposable worker cleanup = `worktree rm --worktree <sel> --force` directly (destructive - user yes first), NOT `terminal close`: closing the last pane auto-spawns a fresh empty default-agent session and the workspace lingers. Orca preserves the branch on rm - delete it separately if the commits are junk.
+**Session audit (an orchestrator duty):** after every closed cycle (worker_done processed + PR merged / task closed) and at the end of a wave, walk `worktree ps` + `terminal list` and present the user a one-line LIST of spent sessions: "no longer needed: X (worktree, branch merged), Y (reviewer, both rounds closed) - close them?". Closing happens ONLY after the user's approval (worktree rm for disposables, terminal close for sessions in permanent checkouts - never the last pane). A dead fleet left hanging with no cleanup proposal = a red flag.
 
 Untracked path (`--prompt` or `terminal send`) only for lightweight/interactive sessions (brainstorm, infra work): then the prompt MUST embed a comms protocol (e.g. file bus `/tmp/<name>-bus.md`, STATUS/QUESTION/BLOCKED lines) - the channel is decided BEFORE launch, no retrofit.
 
