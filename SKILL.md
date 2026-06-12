@@ -71,7 +71,7 @@ Routing FRAMEWORK - bind to your subscriptions:
 | Docs/copy review, summaries | [mid tier, Sonnet-class] | normal |
 | Mechanical batch edits | [fast tier, Haiku-class] | low |
 | Web research / extraction | cheap non-frontier models via a router (don't burn frontier quota on reading pages) | - |
-| DevOps/terminal grind, CI/YAML, scans/audits, batch refactors, long autonomous runs, second opinion; well-specified isolated coding when quota is free | second pool if you have one (e.g. Codex CLI on a ChatGPT plan) | medium |
+| DevOps/terminal grind, CI/YAML, scans/audits, batch refactors, long autonomous runs, second opinion; well-specified isolated coding when quota is free | second pool if you have one (e.g. Codex CLI on a ChatGPT plan: heavy = top model + medium effort; grind = mini tier + low. NEVER top model + xhigh on a tight plan - the model x effort pair is the quota multiplier) | medium / low |
 
 - Budget guard: a wave of 3+ frontier workers → tell the user the cost in words BEFORE launch.
 - Second-pool quotas are usually tight (e.g. ChatGPT Plus ≈ 20-100 msgs/5h): plan on the LOW bound, count tasks before dispatch; quota dies mid-task → worker checkpoints to the bus → reroute to your main pool in the SAME worktree, tell the user. Never silently wait out the quota window.
