@@ -18,7 +18,7 @@ This skill encodes the counter-policies: an execution matrix (where each piece o
 
 ## What's in the box
 
-- **`skills/worker-mode/SKILL.md`** - the worker-side policy: subagent-driven execution, model routing for the worker's own subagents, the phase-boundary protocol (tick plan checkboxes, commit, STATUS, signal readiness for coordinator-triggered compaction), bus reporting, PR authoring rules, QA discipline in Orca's built-in browser, and the anti-matryoshka role line. Embed "invoke worker-mode first" in every worker prompt.
+- **`skills/worker-mode/SKILL.md`** - the worker-side policy: subagent-driven execution, model routing for the worker's own subagents, the phase-boundary protocol (tick plan checkboxes, commit, STATUS, signal readiness for coordinator-triggered compaction), bus reporting, the post-worker_done turn-end rule (no grace-period polling loops - an idle session is free and reachable), PR authoring rules, QA discipline in Orca's built-in browser, and the anti-matryoshka role line. Embed "invoke worker-mode first" in every worker prompt.
 - **`skills/pr-review/SKILL.md`** - the reviewer-side policy: read-only (no checkout), contract-first, sequential code + security passes with a concrete checklist (blanket GRANTs, caller-supplied tenant ids, per-platform escaping), self-verification of every blocker, verdict-file output, and no posting of vulnerabilities to public PRs before fixes.
 - **`SKILL.md`** - the orchestrator policy. Install it for your agent (see below). Sections:
   - Execution matrix: in-session vs invisible subagent vs visible Orca terminal vs worktree worker
@@ -29,7 +29,7 @@ This skill encodes the counter-policies: an execution matrix (where each piece o
   - Conflict pre-flight (exclusive resources, file zones, dependency chains) and issue-tracker conventions
   - PR flow with sequential review sessions and a user-held merge gate
   - Context lifecycle for the orchestrator (wave checkpoints, restart procedure, emergency compaction)
-  - Knowledge-correction duty and a human-gated skill lifecycle
+  - Knowledge-correction duty and a human-gated skill lifecycle (incl. skill-edit discipline: every edit ships with its probe or a knowledge-correction tag, both editions in one sitting)
 
 ## Requirements
 
@@ -59,7 +59,7 @@ Then edit the `[bracketed]` bindings (your models, KB paths, tracker) and add a 
 
 ## Authoring methodology
 
-The skill was written with TDD-for-documentation: a baseline scenario was run WITHOUT the skill (the agent chose to read worker TUIs, retrofit comms, push to main next to a live worker, and launch Codex without sandbox flags), the skill was written against those exact failures, the same scenario was re-run WITH the skill (clean), and a live smoke test exercised the full tracked dispatch cycle. Post-release edits follow the same loop: a real observed failure is the RED test.
+The skill was written with TDD-for-documentation: a baseline scenario was run WITHOUT the skill (the agent chose to read worker TUIs, retrofit comms, push to main next to a live worker, and launch Codex without sandbox flags), the skill was written against those exact failures, the same scenario was re-run WITH the skill (clean), and a live smoke test exercised the full tracked dispatch cycle. Post-release edits follow the same loop: a real observed failure is the RED test. Probe transcripts for releases live under `docs/` (e.g. `docs/probe-log-2026-06-13.md` for 0.4.0).
 
 ## License
 

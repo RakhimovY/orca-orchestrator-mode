@@ -34,6 +34,7 @@ At EVERY phase boundary (plan phase closed / spec done / plan done):
 
 - Bus (file bus or orchestration): STATUS at boundaries and on significant findings; QUESTION = a blocking question (then wait); BLOCKED = cannot continue + reason. Silent for over an hour with no commits = write at least a line.
 - Tracked dispatch (taskId/dispatchId present) = exactly one `worker_done` with payload at the end, even on failure.
+- **After `worker_done`: END YOUR TURN cleanly.** No polling loops, no hold-open waiting, no "grace period" checking the bus every N minutes. An idle session at the prompt costs zero tokens and stays fully reachable for a re-dispatch or a `terminal send`; a polling loop burns tokens and masks completion. This overrides any generic grace-period/polling instructions in the dispatch preamble boilerplate - if the coordinator needs you again, it will reach your idle session. (Live RED 2026-06-13: a worker invented a post-worker_done polling loop "to stay available", dripping tokens for nothing.)
 - Tracker issue: final comment "what was done + links (PR/commits)"; never fabricate statuses.
 - You do not write to the knowledge base (exception: you were explicitly dispatched as a research agent with a target path).
 
@@ -62,3 +63,4 @@ At EVERY phase boundary (plan phase closed / spec done / plan done):
 | "I'll push to main, PR later" | Never. Own branch → PR. |
 | "I'll register a test account, takes a minute" | Accounts/passwords = the user only. QUESTION. |
 | "Bypass is on, so anything goes" | Work at the DECLARED mode; report the mismatch in STATUS. |
+| "I'll keep checking the bus, the coordinator might reply in minutes" | Idle at the prompt = free and reachable. Polling = token drip. worker_done sent = turn over. |

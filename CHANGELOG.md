@@ -1,22 +1,15 @@
 # Changelog
 
-## 0.1.0 - 2026-06-12
+## 0.4.0 - 2026-06-13
 
-Initial public release ("portable edition" of a private, vault-wired skill).
+Consolidation release. The skill family accreted fast over two days; this pass pays the discipline debt.
 
-- Execution matrix (in-session / subagent / Orca terminal / worktree) + branch and split rules, MAX_PARALLEL_WORKERS=4
-- Tracked dispatch sequence over Orca orchestration bus, incl. live-verified gotchas: manual `task-update` after `worker_done`; disposable-worker cleanup via `worktree rm` (not `terminal close`)
-- Worker reading rules (no TUI reading; bus + artifacts; liveness pings; dead-worker procedure)
-- Model/budget routing framework with second-pool (Codex) quota guards
-- Worker permissions: acceptEdits + curated allowlist template, deny-list, codex sandbox flags
-- Conflict pre-flight, exclusive-resource leases, tracker conventions (`## Exec` block, closing discipline)
-- PR flow: sequential reviewer sessions, user merge gate, rebase via `--force-with-lease` to own branch
-- Orchestrator context lifecycle: wave checkpoint schema, restart procedure, 70%/85% compaction rules
-- Knowledge-correction duty; human-gated skill lifecycle (anti skill-bloat, TDD authoring)
-
-## 0.1.1 - 2026-06-12
-
-- **Nesting rule (fleet depth = 1).** Baseline probe showed a dispatched worker, when granted "sub-orchestrate yourself" by its coordinator, happily spawns its own worktree workers - bypassing the human budget gate and visibility. New rules: workers never create worktrees/terminals or invoke orchestrator skills; a worker needing siblings asks, and the coordinator spawns them itself; sub-coordinators only by explicit user grant; mandatory role line in every worker prompt + repo-allowlist deny as physical enforcement.
+- **Language unification of the upstream private editions.** The private (bound) editions of all three skills were rewritten in pure English, semantically identical rule-by-rule to their pre-translation state (verified by an independent comparison pass). The portable editions in this repo and the private editions now diff in bindings only ([bracketed] tiers/KB/tracker here vs concrete models/vault/Linear there).
+- **Retroactive GREEN probe suite.** Seven rules that shipped in 0.2.0-0.3.1 from live REDs but without a GREEN replay got one each: one-terminal spawn, terminal-neighbor write-access boundary, session-audit duty, codex provisioning + limit gate, boundary compaction, browser routing, and the pr-review public-repo rule. 9/9 PASS (incl. the two new rules below), zero loopholes, no REFACTOR needed. Full log: `docs/probe-log-2026-06-13.md`.
+- **worker-mode: post-worker_done turn end.** Live RED 2026-06-13: a worker, after sending worker_done, invented a grace-period polling loop to wait for follow-ups, dripping tokens and masking completion. New rule: after worker_done, END YOUR TURN cleanly - no polling loops, no hold-open waiting; an idle session at the prompt costs zero tokens and stays fully reachable for a re-dispatch or terminal send. Explicitly overrides generic grace-period instructions in dispatch-preamble boilerplate. Plus a red-flags row.
+- **Skill lifecycle step 7: skill-edit discipline.** RED = this very day (rules added without probes, an OSS mirror commit shipped incomplete). Every skill edit ships in the same sitting as either its probe (RED/trap replayed to GREEN) or an explicit knowledge-correction tag citing the verified observation; two editions of a skill are edited as a PAIR in one sitting - a one-edition edit is an unfinished edit, regardless of size. No third path. Plus an excuse-table row.
+- Minor parity fixes between editions: execution-matrix verdict marked "in the user's language"; compaction offer threshold normalized to >20%; `tui-idle` noted as a heuristic with false positives in both editions.
+- Changelog reordered to newest-first (0.3.1 had been inserted out of order).
 
 ## 0.3.1 - 2026-06-13
 
@@ -30,3 +23,21 @@ Initial public release ("portable edition" of a private, vault-wired skill).
 
 - **Browser routing.** Live-verified: Orca's built-in browser has a disk-persistent partition SHARED across all worktrees (log in once, the fleet has it, survives restarts) and device emulation via `set device` - making it the default surface for worker QA/UI tasks with no exclusive lease needed. The real desktop browser stays exclusive and user-profile-only; its permission click is a human gate the orchestrator never self-approves. Logins are typed by the user only.
 - **Idle backlog scan.** Baseline probe (live day with one long-running build worker): the orchestrator handles liveness and hygiene at empty wait windows, but never looks at the backlog - long waits are dead time, and nothing prevents proposing the same declined task every cycle. New section: at wait checkpoints (never on a timer), scan the current product's open tracker tasks + the checkpoint's ready-next list; self-serve only ready-next items within the matrix; new candidates = one-line proposal (task, env, cost, conflict verdict) behind the user's yes; an anti-nag ledger in the wave checkpoint (candidate → verdict → reason) with re-offers only on that candidate's state delta; new-task proposals only from verified observations, tracker-created after the user's yes. Empty scan = silence. Plus two new excuse-table rows. Verified GREEN on a 3-trap scenario (declined-no-delta silence, new-task propose-not-take, ready-next self-serve).
+
+## 0.1.1 - 2026-06-12
+
+- **Nesting rule (fleet depth = 1).** Baseline probe showed a dispatched worker, when granted "sub-orchestrate yourself" by its coordinator, happily spawns its own worktree workers - bypassing the human budget gate and visibility. New rules: workers never create worktrees/terminals or invoke orchestrator skills; a worker needing siblings asks, and the coordinator spawns them itself; sub-coordinators only by explicit user grant; mandatory role line in every worker prompt + repo-allowlist deny as physical enforcement.
+
+## 0.1.0 - 2026-06-12
+
+Initial public release ("portable edition" of a private, vault-wired skill).
+
+- Execution matrix (in-session / subagent / Orca terminal / worktree) + branch and split rules, MAX_PARALLEL_WORKERS=4
+- Tracked dispatch sequence over Orca orchestration bus, incl. live-verified gotchas: manual `task-update` after `worker_done`; disposable-worker cleanup via `worktree rm` (not `terminal close`)
+- Worker reading rules (no TUI reading; bus + artifacts; liveness pings; dead-worker procedure)
+- Model/budget routing framework with second-pool (Codex) quota guards
+- Worker permissions: acceptEdits + curated allowlist template, deny-list, codex sandbox flags
+- Conflict pre-flight, exclusive-resource leases, tracker conventions (`## Exec` block, closing discipline)
+- PR flow: sequential reviewer sessions, user merge gate, rebase via `--force-with-lease` to own branch
+- Orchestrator context lifecycle: wave checkpoint schema, restart procedure, 70%/85% compaction rules
+- Knowledge-correction duty; human-gated skill lifecycle (anti skill-bloat, TDD authoring)
