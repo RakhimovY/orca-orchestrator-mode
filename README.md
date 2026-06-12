@@ -18,7 +18,9 @@ This skill encodes the counter-policies: an execution matrix (where each piece o
 
 ## What's in the box
 
-- **`SKILL.md`** - the policy. Install it for your agent (see below). Sections:
+- **`skills/worker-mode/SKILL.md`** - the worker-side policy: subagent-driven execution, model routing for the worker's own subagents, the phase-boundary protocol (tick plan checkboxes, commit, STATUS, signal readiness for coordinator-triggered compaction), bus reporting, PR authoring rules, QA discipline in Orca's built-in browser, and the anti-matryoshka role line. Embed "invoke worker-mode first" in every worker prompt.
+- **`skills/pr-review/SKILL.md`** - the reviewer-side policy: read-only (no checkout), contract-first, sequential code + security passes with a concrete checklist (blanket GRANTs, caller-supplied tenant ids, per-platform escaping), self-verification of every blocker, verdict-file output, and no posting of vulnerabilities to public PRs before fixes.
+- **`SKILL.md`** - the orchestrator policy. Install it for your agent (see below). Sections:
   - Execution matrix: in-session vs invisible subagent vs visible Orca terminal vs worktree worker
   - Tracked worker spawning (the exact 6-step dispatch sequence + the gotchas we hit live: manual `task-update` after `worker_done`, `worktree rm` not `terminal close` for cleanup)
   - Reading workers without reading their TUI (bus + artifacts only, liveness rules, dead-worker procedure)

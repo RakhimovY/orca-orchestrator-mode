@@ -42,7 +42,9 @@ Disposable worker cleanup = `worktree rm --worktree <sel> --force` directly (des
 
 Untracked path (`--prompt` or `terminal send`) only for lightweight/interactive sessions (brainstorm, infra work): then the prompt MUST embed a comms protocol (e.g. file bus `/tmp/<name>-bus.md`, STATUS/QUESTION/BLOCKED lines) - the channel is decided BEFORE launch, no retrofit.
 
-**Worker prompt must always contain:** task spec + acceptance criteria; `interaction:` mode; comms protocol; reporting block (what goes to the bus, what to the tracker); branch rules (own branch, PR at end, never push main); required skills to invoke; forbidden files (zones owned by parallel workers); **role line: "you are a WORKER, not an orchestrator: no orca worktree/terminal create, no orchestrator skills; parallelism = subagents inside your session; need siblings = ask the coordinator"**. Workers don't read your global config or KB rules - the prompt is their only law.
+**Worker prompt must always contain:** task spec + acceptance criteria; `interaction:` mode; comms protocol; reporting block (what goes to the bus, what to the tracker); branch rules (own branch, PR at end, never push main); required skills to invoke (see the role registry below); forbidden files (zones owned by parallel workers); **role line: "you are a WORKER, not an orchestrator: no orca worktree/terminal create, no orchestrator skills; parallelism = subagents inside your session; need siblings = ask the coordinator"**. Workers don't read your global config or KB rules - the prompt is their only law.
+
+**Role-skill registry (embed in the prompt as "invoke skill X as your first action"):** executor worker (code/QA/infra, multi-phase plan) → `worker-mode`; PR reviewer → `pr-review` (one skill, code+security passes, read-only). Both ship in this repo's `skills/` directory. A role's whole policy lives in its skill - do NOT duplicate it into the prompt (prompt = task + protocol + zones). There are no other role skills; frontend/backend specialization = task content, not a role.
 
 ## Reading workers
 
@@ -86,7 +88,7 @@ Pre-flight before taking a task: read the issue + its `## Exec` block if present
 
 ## PR flow
 
-Worker: branch → PR (template: what/why/tests/issue link) → never merges. Reviewer = separate fresh strong-tier session (sequential queue): code review + security review, full diff, verdict in the PR. Hygiene: no secrets/.env/dumps/temp/debug routes in the diff; .gitignore current. The orchestrator owns merge ORDER; after PR#1 merges, the rebase of PR#2 goes to its worker (`--force-with-lease` own branch); a non-trivial conflict = re-review. Merge gate: "PR #N: <gist>, review clean, merge?" → the USER merges (or says "merge"). Small PRs (no logic/schema/secrets, 1-2 files): inline review by the orchestrator, the user merge gate stays. Git destructive ops = explicit user yes.
+Worker: branch → PR (template: what/why/tests/issue link) → never merges. Reviewer = separate fresh strong-tier session (sequential queue) running the `pr-review` skill: code + security passes over the full diff, verdict file + worker_done. Public repository: a verdict containing vulnerabilities is NOT posted to the PR before fixes land (the orchestrator posts after). Hygiene: no secrets/.env/dumps/temp/debug routes in the diff; .gitignore current. The orchestrator owns merge ORDER; after PR#1 merges, the rebase of PR#2 goes to its worker (`--force-with-lease` own branch); a non-trivial conflict = re-review. Merge gate: "PR #N: <gist>, review clean, merge?" → the USER merges (or says "merge"). Small PRs (no logic/schema/secrets, 1-2 files): inline review by the orchestrator, the user merge gate stays. Git destructive ops = explicit user yes.
 
 ## Interaction modes & escalation
 
