@@ -29,7 +29,8 @@ Policy for a main agent session (the orchestrator) coordinating worker agent ses
 ## Spawning workers (tracked = default for any real task)
 
 Exact sequence (details in the `orchestration` skill):
-1. `orca worktree create --repo <sel> --name <task> --agent <claude|codex> --json` (NO --prompt) → worktreeId
+1. `orca worktree create --repo <sel> --name <task> --agent <claude|codex> --json` (NO --prompt) → worktreeId. `--agent` launches the agent IN the workspace's first terminal - no separate terminal create needed.
+   **Custom agent flags (--model/--permission-mode/--allowedTools):** `--agent` doesn't take them → create the worktree WITHOUT --agent, take its auto-created first terminal from `terminal list`, and launch the agent INSIDE it via `terminal send --text 'claude --model ...' --enter`. Do NOT create a second terminal next to the empty default one (live failure: a workspace with a dangling zsh + the agent; rule: one worker = one terminal, close stray panes immediately).
 2. `orca terminal list --worktree id:<worktreeId> --json` → handle
 3. `orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json`
 4. `orca orchestration task-create --spec "..." --json` → task_id
