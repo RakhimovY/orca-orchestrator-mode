@@ -75,6 +75,7 @@ Routing FRAMEWORK - bind to your subscriptions:
 
 - Budget guard: a wave of 3+ frontier workers → tell the user the cost in words BEFORE launch.
 - Second-pool quotas are usually tight (e.g. ChatGPT Plus ≈ 20-100 msgs/5h): plan on the LOW bound, count tasks before dispatch; quota dies mid-task → worker checkpoints to the bus → reroute to your main pool in the SAME worktree, tell the user. Never silently wait out the quota window.
+- **Second-pool provisioning (a paid subscription must not idle):** on EVERY wave ask yourself "which of these tasks is second-pool-shaped?" - a crisp spec with no taste calls, terminal grind, CI/scans, an isolated module. Found one → route it there, don't hoard everything on the main pool. Before dispatch ALWAYS check the remaining limits (Orca's Codex widget shows Session/Weekly %; the CLI exposes no limits command) - session below ~30% = hold the dispatch. A full day with zero second-pool tasks while quota sits at 99% = a red flag (live failure).
 - Code is never written by the fast/mid tiers to save money - save on mechanics and research, not on code.
 
 ## Permissions (workers)
@@ -115,7 +116,7 @@ A long wait is not dead time: at wait checkpoints the orchestrator looks for wha
 - Sources of truth, kept separate to avoid drift: **tracker = task event log** (workers + orchestrator write), **KB daily note = day narrative** (orchestrator only, written AS EVENTS HAPPEN), **KB project checkpoint = phase boundaries** (orchestrator only). Workers never write the KB directly (research subagents excepted if your KB rules allow).
 - Wave checkpoint schema (write at phase boundaries AND before any compact): task_id↔handle↔worktree/branch↔issue-id; resource leases; open PRs + review status; next ready tasks; idle-proposal ledger (candidate → verdict → reason).
 - Restart: read checkpoint → `worktree ps`+`terminal list` → drain the bus filtered by checkpointed task_ids → resume the loop. The bus is runtime-global and survives orchestrator restarts.
-- Compact at ~70% context (proxies: context warnings, re-asking settled things) in a quiet moment, checkpoint first. Emergency at ~85%: checkpoint → announce a supervision gap → compact unconditionally. A user message always preempts the wait loop: quick matrix+conflict check → "join wave / queue / pause worker X".
+- **Orchestrator compaction goes by BOUNDARIES, not percentages** (mirroring the workers' boundary protocol): a wave / main task just closed and the next one can start on a compacted context → offer the user a one-liner "wave closed, checkpoint written - safe to /compact", starting as early as ~20% context. Don't stay silent until a threshold: the user decides whether to press it. At ~70% (proxies: context warnings, re-asking settled things) push for it at the next quiet moment, checkpoint first. Emergency at ~85%: checkpoint → announce a supervision gap → compact unconditionally. A user message always preempts the wait loop: quick matrix+conflict check → "join wave / queue / pause worker X".
 - Keep the orchestrator thin: big files/diffs/logs go to subagents, summaries come back.
 
 ## Knowledge correction (duty, not option)
