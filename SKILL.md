@@ -11,7 +11,7 @@ Policy for a main agent session (the orchestrator) coordinating worker agent ses
 
 > **Wiring required.** This policy assumes you have: (1) a persistent knowledge base the orchestrator reads/writes (an Obsidian-style vault, a docs repo - referred to as **KB** below); (2) an issue tracker (Linear, GitHub Issues - referred to as **tracker**); (3) your own model subscriptions. Replace the placeholders in [brackets] with your bindings. The skill degrades without them: workers are stateless and the orchestrator's context dies daily - KB + tracker ARE the memory.
 
-## Execution matrix (decide first, tell user one line: `Matrix: <env>, <reason>`)
+## Execution matrix (decide first, tell user one line: `Matrix: <env>, <reason>` - in the user's language)
 
 | Env | When | Never |
 |---|---|---|
@@ -116,7 +116,7 @@ A long wait is not dead time: at wait checkpoints the orchestrator looks for wha
 - Sources of truth, kept separate to avoid drift: **tracker = task event log** (workers + orchestrator write), **KB daily note = day narrative** (orchestrator only, written AS EVENTS HAPPEN), **KB project checkpoint = phase boundaries** (orchestrator only). Workers never write the KB directly (research subagents excepted if your KB rules allow).
 - Wave checkpoint schema (write at phase boundaries AND before any compact): task_id↔handle↔worktree/branch↔issue-id; resource leases; open PRs + review status; next ready tasks; idle-proposal ledger (candidate → verdict → reason).
 - Restart: read checkpoint → `worktree ps`+`terminal list` → drain the bus filtered by checkpointed task_ids → resume the loop. The bus is runtime-global and survives orchestrator restarts.
-- **Orchestrator compaction goes by BOUNDARIES, not percentages** (mirroring the workers' boundary protocol): a wave / main task just closed and the next one can start on a compacted context → offer the user a one-liner "wave closed, checkpoint written - safe to /compact", starting as early as ~20% context. Don't stay silent until a threshold: the user decides whether to press it. At ~70% (proxies: context warnings, re-asking settled things) push for it at the next quiet moment, checkpoint first. Emergency at ~85%: checkpoint → announce a supervision gap → compact unconditionally. A user message always preempts the wait loop: quick matrix+conflict check → "join wave / queue / pause worker X".
+- **Orchestrator compaction goes by BOUNDARIES, not percentages** (mirroring the workers' boundary protocol): a wave / main task just closed and the next one can start on a compacted context → offer the user a one-liner "wave closed, checkpoint written - safe to /compact", starting as early as >20% context. Don't stay silent until a threshold: the user decides whether to press it. At ~70% (proxies: context warnings, re-asking settled things) push for it at the next quiet moment, checkpoint first. Emergency at ~85%: checkpoint → announce a supervision gap → compact unconditionally. A user message always preempts the wait loop: quick matrix+conflict check → "join wave / queue / pause worker X".
 - Keep the orchestrator thin: big files/diffs/logs go to subagents, summaries come back.
 
 ## Knowledge correction (duty, not option)
@@ -137,6 +137,7 @@ Borrowed from GenericAgent/OpenSkill-style self-skill research with their docume
 4. **Author via TDD for skills** (RED baseline = the actual observed failure; GREEN = replay the same scenario with the skill present).
 5. **Anchor every mechanic claim** to something verifiable (command --help, a smoke run, a doc URL) - never to memory.
 6. **Log every skill change** (changelog line; the change states what observation forced it).
+7. **Skill-edit discipline (no untested, no half-mirrored edits):** every skill edit ships in the same sitting as either (a) its probe (an observed RED failure or a trap scenario replayed to GREEN), or (b) an explicit knowledge-correction tag citing the verified observation that contradicted the old text. If you maintain two editions of a skill (e.g. a private bound edition and a portable OSS one), they are edited as a PAIR in one sitting - an edit that touches only one edition is an unfinished edit, regardless of size. No third path: not for "small wording tweaks", not for "I'll mirror it tomorrow", not for "it's just a translation".
 
 ## Red flags - STOP, you're about to violate
 
@@ -157,3 +158,4 @@ Borrowed from GenericAgent/OpenSkill-style self-skill research with their docume
 | "Skill invocation slows me down, task is simple" | A single read-only subagent is exempt. Everything else - one-line matrix verdict. |
 | "I'm idle - I'll just take a backlog task" | Self-serve = ready-next from the checkpoint only. New backlog items = one-line proposal, wait for yes. |
 | "I'll propose it again, maybe they changed their mind" | A decline in the ledger = silence until that candidate's state changes. Repeating without new information is nagging. |
+| "Tiny skill tweak, no probe needed; I'll mirror the other edition tomorrow" | No probe and no correction-tag = untested edit. One edition only = unfinished edit. Same sitting, both editions. |
