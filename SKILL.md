@@ -24,6 +24,7 @@ Policy for a main agent session (the orchestrator) coordinating worker agent ses
 - Visibility escalation = kill+respawn: a subagent that turns out to need a browser/secrets/user returns partial results + a handoff summary; spawn a fresh visible session with that summary in the prompt.
 - Splits inside one worktree: helper roles only (reviewer, test watcher, dev server). Never a second writing agent.
 - **MAX_PARALLEL_WORKERS = 4** worktree workers. More = explicit user override.
+- **Nesting: fleet depth = 1, always.** Workers freely use invisible subagents INSIDE their session, but NEVER create worktrees/terminals or invoke this skill. A worker needing siblings sends `ask`; the coordinator NEVER replies "sub-orchestrate yourself" (baseline-tested: a worker happily builds a matryoshka on such a grant, bypassing the user's budget gate) - the coordinator decomposes and spawns the siblings itself, under the global cap and the user's visibility. A sub-coordinator exists only by explicit USER grant (full handoff). Enforcement: the role line in every worker prompt (below) + deny `orca worktree create`/`orca terminal create` in the repo allowlist (workers live in the repo, the orchestrator doesn't - the ban is physical).
 
 ## Spawning workers (tracked = default for any real task)
 
@@ -41,7 +42,7 @@ Disposable worker cleanup = `worktree rm --worktree <sel> --force` directly (des
 
 Untracked path (`--prompt` or `terminal send`) only for lightweight/interactive sessions (brainstorm, infra work): then the prompt MUST embed a comms protocol (e.g. file bus `/tmp/<name>-bus.md`, STATUS/QUESTION/BLOCKED lines) - the channel is decided BEFORE launch, no retrofit.
 
-**Worker prompt must always contain:** task spec + acceptance criteria; `interaction:` mode; comms protocol; reporting block (what goes to the bus, what to the tracker); branch rules (own branch, PR at end, never push main); required skills to invoke; forbidden files (zones owned by parallel workers). Workers don't read your global config or KB rules - the prompt is their only law.
+**Worker prompt must always contain:** task spec + acceptance criteria; `interaction:` mode; comms protocol; reporting block (what goes to the bus, what to the tracker); branch rules (own branch, PR at end, never push main); required skills to invoke; forbidden files (zones owned by parallel workers); **role line: "you are a WORKER, not an orchestrator: no orca worktree/terminal create, no orchestrator skills; parallelism = subagents inside your session; need siblings = ask the coordinator"**. Workers don't read your global config or KB rules - the prompt is their only law.
 
 ## Reading workers
 

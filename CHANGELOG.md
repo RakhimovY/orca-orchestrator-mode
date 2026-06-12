@@ -13,3 +13,7 @@ Initial public release ("portable edition" of a private, vault-wired skill).
 - PR flow: sequential reviewer sessions, user merge gate, rebase via `--force-with-lease` to own branch
 - Orchestrator context lifecycle: wave checkpoint schema, restart procedure, 70%/85% compaction rules
 - Knowledge-correction duty; human-gated skill lifecycle (anti skill-bloat, TDD authoring)
+
+## 0.1.1 - 2026-06-12
+
+- **Nesting rule (fleet depth = 1).** Baseline probe showed a dispatched worker, when granted "sub-orchestrate yourself" by its coordinator, happily spawns its own worktree workers - bypassing the human budget gate and visibility. New rules: workers never create worktrees/terminals or invoke orchestrator skills; a worker needing siblings asks, and the coordinator spawns them itself; sub-coordinators only by explicit user grant; mandatory role line in every worker prompt + repo-allowlist deny as physical enforcement.
