@@ -34,7 +34,7 @@ Exact sequence (details in the `orchestration` skill):
 3. `orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json`
 4. `orca orchestration task-create --spec "..." --json` → task_id
 5. `orca orchestration dispatch --task <task_id> --to <handle> --inject --json`
-6. Coordinator runs a rolling LOOP of `check --wait --types worker_done,escalation,decision_gate --timeout-ms 900000` - one message per call, N workers ≥ N iterations. A timeout = liveness checkpoint, not failure.
+6. Coordinator runs a rolling LOOP of `check --wait --types worker_done,escalation,decision_gate --timeout-ms 900000` - one message per call, N workers ≥ N iterations. A timeout = liveness checkpoint, not failure - and the idle-scan point (see § Idle backlog scan).
 
 Before any (re)dispatch: `dispatch-show --task <id>` - never double-dispatch a live handle.
 After `worker_done`: the coordinator MUST close the task itself - `task-update --id <task_id> --status completed --json` (verified live: status does NOT flip automatically, tasks dangle as "dispatched").
@@ -91,10 +91,21 @@ Worker: branch → PR (template: what/why/tests/issue link) → never merges. Re
 
 Prompt flag `interaction: orchestrator-led` (default - the orchestrator answers worker questions from the KB/specs/recorded decisions; unknown = escalate) | `user-led` (brainstorm/design sessions - the user answers in the visible panel; relay = worker writes QUESTION to the bus / decision_gate, the orchestrator brings it to the user VERBATIM). Switchable mid-flight. Always escalate regardless of mode: money/logins/KYC; taste calls; irreversible actions.
 
+## Idle backlog scan (between signals)
+
+A long wait is not dead time: at wait checkpoints the orchestrator looks for what else can run in parallel.
+
+- **Trigger:** a wait checkpoint - an empty `check --wait` window; a worker_done processed with nothing new to dispatch; a subagent finished and hands are free. NOT on a timer and NOT on every STATUS message (most STATUS updates change nothing about what can be parallelized).
+- **Scope:** open tracker tasks of the CURRENT product's projects + the "ready next" list from the KB checkpoint. Don't scan other products: the user picks the day's focus.
+- **Launch rights:** ready-next items (already user-approved) → take them yourself within the matrix (in-session/subagent; spawning a worker still goes through a proposal). New backlog candidates → ONE-line proposal to the user: task, env per the matrix, rough cost, conflict pre-flight verdict. No "yes" = no launch (the budget gate).
+- **Anti-nag (ledger):** every shown candidate goes into the wave-checkpoint ledger: `candidate → verdict (launched/declined/deferred) → reason`. Declined = silence about that candidate. Re-offer ONLY on a state delta of that specific candidate (a blocker resolved, a worker slot / exclusive resource freed, the task edited in the tracker) - and the proposal must say WHAT changed; or when the user themselves asks "what can we run". A repeat with no new information is nagging.
+- **New tasks:** propose creating a task only from a VERIFIED observation (a fact from the bus / a check / a loose end), never from "we could also..." brainstorming. Max 1-2 per proposal; created in the tracker only after the user's yes.
+- **An empty scan** (no candidates / everything in the ledger with no delta) = silence, just the next wait window. Don't report "checked, nothing found".
+
 ## Reporting & context lifecycle
 
 - Sources of truth, kept separate to avoid drift: **tracker = task event log** (workers + orchestrator write), **KB daily note = day narrative** (orchestrator only, written AS EVENTS HAPPEN), **KB project checkpoint = phase boundaries** (orchestrator only). Workers never write the KB directly (research subagents excepted if your KB rules allow).
-- Wave checkpoint schema (write at phase boundaries AND before any compact): task_id↔handle↔worktree/branch↔issue-id; resource leases; open PRs + review status; next ready tasks.
+- Wave checkpoint schema (write at phase boundaries AND before any compact): task_id↔handle↔worktree/branch↔issue-id; resource leases; open PRs + review status; next ready tasks; idle-proposal ledger (candidate → verdict → reason).
 - Restart: read checkpoint → `worktree ps`+`terminal list` → drain the bus filtered by checkpointed task_ids → resume the loop. The bus is runtime-global and survives orchestrator restarts.
 - Compact at ~70% context (proxies: context warnings, re-asking settled things) in a quiet moment, checkpoint first. Emergency at ~85%: checkpoint → announce a supervision gap → compact unconditionally. A user message always preempts the wait loop: quick matrix+conflict check → "join wave / queue / pause worker X".
 - Keep the orchestrator thin: big files/diffs/logs go to subagents, summaries come back.
@@ -135,3 +146,5 @@ Borrowed from GenericAgent/OpenSkill-style self-skill research with their docume
 | "The CSS fix is atomic, main is fine" | Atomicity doesn't cancel the parallel worker on the repo. Worktree. |
 | "Codex is cheaper, route everything there" | Tight quota. Count before dispatch, route by task type. |
 | "Skill invocation slows me down, task is simple" | A single read-only subagent is exempt. Everything else - one-line matrix verdict. |
+| "I'm idle - I'll just take a backlog task" | Self-serve = ready-next from the checkpoint only. New backlog items = one-line proposal, wait for yes. |
+| "I'll propose it again, maybe they changed their mind" | A decline in the ledger = silence until that candidate's state changes. Repeating without new information is nagging. |
