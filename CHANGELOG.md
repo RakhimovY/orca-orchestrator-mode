@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1 - 2026-06-14
+
+Contract-coherence fix for worker-mode (completes the 0.7.0 task-contract chain). After 0.7.0 added the typed task contract to orchestrator-mode, a check of the role skills found a broken invariant: worker-mode forbids the worker from reading orchestrator-mode and promises "every policy you need is duplicated here", yet the `worker_done` payload SCHEMA lived only in orchestrator-mode's § Task contract - invisible to the worker. RED probe (a worker on the current worker-mode + a realistic v0.7.0 dispatch): the worker improvised a rich payload but OMITTED its own `key_decisions[]` (it recorded only the predecessor's carried decisions + a prose summary), so the orchestrator's handoff/drift rules would have nothing to carry and would reconstruct from the diff - defeating the whole 0.7.0 contract. GREEN replay: the worker now emits its own `key_decisions[]` distinct from inherited ones, gates `worker_done` on `verify`, and writes the impl-log as-it-works. No REFACTOR. Probe log: `docs/probe-log-2026-06-14.md`.
+
+- **worker-mode § Reporting:** the `worker_done` payload gets an explicit schema (`{summary, files_changed[], verify, key_decisions[], follow_ups[], blockers[]}`), with `key_decisions[] = the non-obvious choices YOU made that a dependent task or reviewer needs, distinct from predecessor decisions you were handed`; plus the verify-gate (no success `worker_done` until `verify` is green; self-correct bounded before escalating). This mirrors orchestrator-mode's § Task contract into the worker's own skill, so the worker no longer needs the (forbidden) parent skill for it.
+- **worker-mode § Reporting:** the tracker line now mandates an impl-log AS YOU WORK (was "final comment only", which contradicted orchestrator-mode 0.7.0's mandated impl-log), noting a tracker comment is not a bus message and won't inject.
+- **pr-review: deliberately UNCHANGED.** A RED probe confirmed the existing skill already treats the `worker_done` payload as claims-to-verify field by field, gives `verify: "pass"` near-zero evidentiary weight, and logs an unconfirmable green as a finding. Its "the author's self-report is not verification" stance already covers the new payload; a new rule would be redundant bloat. (Probe-confirmed, not assumed.)
+
+Both worker-mode editions edited in parity.
+
 ## 0.7.0 - 2026-06-14
 
 Borrow pass from a deep-dive of two popular frameworks (crewAI ~54k stars, Task Master ~27k stars). A RED baseline probe first established the skill was already strong: quality-under-cost-pressure, ready-set sequencing, and acceptance criteria all PASSED at baseline, so those were NOT re-added. Three genuine gaps + five user-requested capability borrows shipped; all GREEN-verified on one consolidated 8-trap scenario, zero loopholes, no REFACTOR. Probe log: `docs/probe-log-2026-06-14.md`. Source analysis: `references/crewai.md`, `references/claude-task-master.md` (private KB).
