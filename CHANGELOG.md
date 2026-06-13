@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1 - 2026-06-13
+
+Knowledge-correction from a live RED (silent model-init hang).
+
+- **Launch-health rule (§ Reading workers, both editions).** A worker launched with custom `--model`/`--effort`/`--permission-mode` can die at model-init: an unavailable model or a bad flag fails at the CLI/API layer BEFORE the agent runs, so it never starts, cannot post `escalation`/`BLOCKED`, and the bus stays silent forever. New rule: confirm launch health ~30-60s after send (tab title → task-derived summary + active spinner = alive; frozen spinner / model error / shell with a resume hint = dead), NEVER trust the first frame (it only shows prompt-ingestion) and NEVER trust the terminal-list `preview` (it lags with stale scrollback) - the definitive check is `ps` on the process to read its actual `--model` arg. RED 2026-06-13: a worker was launched on a model the user had said was unavailable; it hung mute and a first-frame liveness check passed falsely.
+- Private edition binding only: the concrete model matrix moved off the (currently unavailable) Fable 5 onto Opus 4.8 1M for the Orchestrator + hard/security tier, with a note that the `[1m]` model-id must be shell-quoted (zsh globs `[1m]`). The portable edition's matrix is model-agnostic ([bracketed] tiers) so it is unchanged - a binding-only correction by definition lives in the bound edition.
+
 ## 0.6.0 - 2026-06-13
 
 Comms-channel correction (supersedes 0.5.0's "org bus is the default for any tracked worker").
