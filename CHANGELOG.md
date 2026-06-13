@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - 2026-06-13
+
+Knowledge-correction pass from a live wave (user-gated; all decisions confirmed in-session).
+
+- **Worker permission default flipped to full bypass.** RED: the `acceptEdits + allowlist` default made autonomous infra workers hang INVISIBLY on un-allowlisted commands, and the list was dead weight to maintain. Autonomous isolated-worktree workers now default to full bypass (no allowlist); `acceptEdits + allowlist` is reserved for visible/interactive sessions with a deliberate human gate.
+- **Anti-nesting + destructive-op guards moved into the worker prompt.** Bypass ignores allow/deny lists, so the old "physical" allowlist-deny (no worktree/terminal create, no push-to-main, no prod deploy, no `rm -rf` outside) no longer exists - it is now a mandatory forbidden-commands clause in every worker prompt, backed by the role line and the coordinator-decomposes rule.
+- **Worker message discipline (inject fix).** RED: on the org bus, worker heartbeats and routine STATUS pings inject into the live orchestrator session and interrupt the user mid-conversation. Workers now emit ONLY `worker_done` / `escalation` / `decision_gate`; silence between milestones. Org bus stays the default for tracked workers.
+- **File-bus wake caveat.** RED: a file-bus worker that ends a turn goes idle and does not auto-poll - an appended `ANSWER` won't wake it, a `terminal send` poke may still not re-engage. Documented; reinforces org bus as default (`reply` auto-delivers/wakes).
+- **Teardown ritual before worktree rm.** RED: worktrees removed with the tracker closed but the day-log never written - narrative drift. Orchestrator now writes the worker's outcome to the day-log (as events happen) and closes the tracker BEFORE rm.
+
 ## 0.4.0 - 2026-06-13
 
 Consolidation release. The skill family accreted fast over two days; this pass pays the discipline debt.

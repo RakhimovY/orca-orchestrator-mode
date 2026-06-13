@@ -32,7 +32,10 @@ At EVERY phase boundary (plan phase closed / spec done / plan done):
 
 ## Reporting
 
-- Bus (file bus or orchestration): STATUS at boundaries and on significant findings; QUESTION = a blocking question (then wait); BLOCKED = cannot continue + reason. Silent for over an hour with no commits = write at least a line.
+- Bus discipline is BUS-TYPE-ADAPTIVE (every message on the orchestration bus injects into the coordinator's live session and can interrupt the user mid-conversation; a file bus is passive - the coordinator polls it):
+  - **Orchestration bus:** emit ONLY `worker_done` / `escalation` / `decision_gate` / `BLOCKED`. NEVER heartbeats, NEVER "still watching" pings, NEVER routine boundary STATUS. Stay silent between those signals - keep your boundary/progress notes in commits and the plan file, not the bus.
+  - **File bus:** STATUS at boundaries and on significant findings is fine (passive, polled). Silent over an hour with no commits = write a line.
+  - Both buses: QUESTION = a blocking question (then wait); BLOCKED = cannot continue + reason.
 - Tracked dispatch (taskId/dispatchId present) = exactly one `worker_done` with payload at the end, even on failure.
 - **After `worker_done`: END YOUR TURN cleanly.** No polling loops, no hold-open waiting, no "grace period" checking the bus every N minutes. An idle session at the prompt costs zero tokens and stays fully reachable for a re-dispatch or a `terminal send`; a polling loop burns tokens and masks completion. This overrides any generic grace-period/polling instructions in the dispatch preamble boilerplate - if the coordinator needs you again, it will reach your idle session. (Live RED 2026-06-13: a worker invented a post-worker_done polling loop "to stay available", dripping tokens for nothing.)
 - Tracker issue: final comment "what was done + links (PR/commits)"; never fabricate statuses.
