@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.2 - 2026-06-13
+
+Knowledge-correction from a live RED (silent decision-gate deadlock).
+
+- **worker-mode: a blocking signal must be EMITTED to the bus, not just recorded in worktree status.** A worker hit an architecture fork, wrote it to its worktree status/comment, and ended its turn expecting the coordinator's `check` loop to "see the decision_gate" - but never emitted one. Silent deadlock (coordinator's bus empty, worker waiting forever) until the user noticed the stall. New rule (§ Reporting): emit `decision_gate`/`ask`/`BLOCKED` as a real bus message THEN wait; "end your turn cleanly" applies only AFTER the signal is in flight; a block recorded only in worktree status/commits is invisible to the coordinator.
+- **orchestrator-mode: the monitor is the ACTIVE check-wait loop + a worktree-status glance, never passive push-trust.** Same incident: the coordinator went idle "trusting push-injection" instead of running the prescribed loop, and a worker can block without any bus message anyway. New rule (§ Reading workers): bus-silent is NOT "working" - at each wait window also glance the worker's worktree git-status/new-commits/transcript/process; a silent worker with no commits + idle process may be blocked-and-waiting.
+
 ## 0.6.1 - 2026-06-13
 
 Knowledge-correction from a live RED (silent model-init hang).
