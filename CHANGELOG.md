@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3 - 2026-06-14
+
+Process hardening: institutionalizes the coherence check the whole 0.7.x line needed. § Skill lifecycle step 7 now mandates a **neighbor scan before closing** any skill edit - reconcile every sibling that restates the changed rule (other sections of the same skill, the other edition, and the parent/child skills in the family orchestrator-mode ↔ worker-mode ↔ pr-review) by grepping the changed term across the family and fixing every contradicting echo in the SAME sitting. The editions-as-a-PAIR rule becomes one case of this. RED = three real half-fixes in one session (0.5.0 fixed § Reporting but not § Session start/§ Phase boundaries; 0.6.1 fixed orchestrator-mode but not worker-mode; 0.7.0's task contract fixed orchestrator-mode but not worker-mode) - each resurrected or stranded a rule. GREEN: an orchestrator about to close a worker-mode reporting edit now greps the family, names the concrete orchestrator-mode echo to reconcile, checks the edition pair + pr-review, before committing - no REFACTOR. Plus a red-flag row ("fixed it in its main section" → grep the family). Both editions.
+
 ## 0.7.2 - 2026-06-14
 
 RED-corpus coverage audit of the role skills (worker-mode, pr-review): does a covering rule exist for each documented RED (design spec + changelog 0.1.0-0.7.1). Most of the corpus is fully covered; two knowledge-corrections found, both the "parent section/skill fixed, sibling left stale" pattern. No behavioral probe - these are verified contradictions / a stale fact, not new rules (skill-edit discipline step 7b). pr-review: audited, no gap, unchanged. Audit matrix in `docs/probe-log-2026-06-14.md`.

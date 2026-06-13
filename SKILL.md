@@ -160,7 +160,7 @@ Borrowed from GenericAgent/OpenSkill-style self-skill research with their docume
 4. **Author via TDD for skills** (RED baseline = the actual observed failure; GREEN = replay the same scenario with the skill present).
 5. **Anchor every mechanic claim** to something verifiable (command --help, a smoke run, a doc URL) - never to memory.
 6. **Log every skill change** (changelog line; the change states what observation forced it).
-7. **Skill-edit discipline (no untested, no half-mirrored edits):** every skill edit ships in the same sitting as either (a) its probe (an observed RED failure or a trap scenario replayed to GREEN), or (b) an explicit knowledge-correction tag citing the verified observation that contradicted the old text. If you maintain two editions of a skill (e.g. a private bound edition and a portable OSS one), they are edited as a PAIR in one sitting - an edit that touches only one edition is an unfinished edit, regardless of size. No third path: not for "small wording tweaks", not for "I'll mirror it tomorrow", not for "it's just a translation".
+7. **Skill-edit discipline (no untested, no half-mirrored, no orphaned-sibling edits):** every skill edit ships in the same sitting as either (a) its probe (an observed RED failure or a trap scenario replayed to GREEN), or (b) an explicit knowledge-correction tag citing the verified observation that contradicted the old text. **Neighbor scan before closing (mandatory):** a change in one place obliges you to reconcile every SIBLING that restates the changed rule - other sections of the same skill, the other edition (if you keep two), and the parent/child skills in the family. Grep the changed term across the family and fix every contradicting echo in the SAME sitting; a fix that leaves a sibling contradicting it is an unfinished edit (editions-as-a-PAIR is one case of this). No third path: not for "small wording tweaks", not for "I'll mirror it tomorrow", not for "it's just a translation". (RED, observed 3x in one session: a rule fixed in one section/skill while a sibling that restated it was left stranded - resurrecting or orphaning a rule.)
 
 ## Red flags - STOP, you're about to violate
 
@@ -186,6 +186,7 @@ Borrowed from GenericAgent/OpenSkill-style self-skill research with their docume
 | "I'm idle - I'll just take a backlog task" | Self-serve = ready-next from the checkpoint only. New backlog items = one-line proposal, wait for yes. |
 | "I'll propose it again, maybe they changed their mind" | A decline in the ledger = silence until that candidate's state changes. Repeating without new information is nagging. |
 | "Tiny skill tweak, no probe needed; I'll mirror the other edition tomorrow" | No probe and no correction-tag = untested edit. One edition only = unfinished edit. Same sitting, both editions. |
+| "Fixed the rule in its main section, that's the fix" | A sibling that restates it now contradicts it. Grep the family, reconcile every echo, same sitting. |
 | "It said DONE, good enough" | Prose done = no key_decisions, no verify proof. Demand the typed worker_done payload. |
 | "The dependent worker will figure out A's choices" | It re-derives or contradicts them. Carry the predecessor's key_decisions in the prompt. |
 | "It's active and committing, leave it" | 3x past estimate + active = rabbit-hole. Envelope check-in (not a kill). |
