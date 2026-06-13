@@ -12,8 +12,8 @@ Craft policy for a heavy worker session under an orchestrator. Your law = the di
 ## Session start (first 2 minutes)
 
 1. Read the whole prompt: task spec, acceptance criteria, `interaction:` mode, comms protocol, forbidden file zones.
-2. **Verify the permission mode** that actually applied vs the one the prompt declared (launch profiles can override flags). Mismatch = state it in the first STATUS, keep working, but hold destructive operations to the DECLARED mode.
-3. First STATUS to the bus: "protocol accepted" + phase plan + any mismatches found.
+2. **Verify the permission mode** that actually applied vs the one the prompt declared (launch profiles can override flags). Mismatch = report it per the bus discipline (§ Reporting: a file-bus STATUS, or the `worker_done` note on the org bus - escalation if it blocks), keep working, but hold destructive operations to the DECLARED mode.
+3. Acknowledge per the bus discipline (§ Reporting): FILE bus = a first STATUS ("protocol accepted" + phase plan + any mismatch). ORG bus = NO ack STATUS (it would inject into the coordinator's live session) - just start working; keep your phase plan in the plan file.
 
 ## Execution: subagent-driven
 
@@ -27,7 +27,7 @@ Craft policy for a heavy worker session under an orchestrator. Your law = the di
 At EVERY phase boundary (plan phase closed / spec done / plan done):
 1. Tick the checkboxes of completed steps in the plan file ON DISK (your recovery anchor after compaction - an unticked plan = a blind summary).
 2. Commit everything, tests green, lint clean.
-3. STATUS to the bus: what closed, commits, test counts, what's next.
+3. Boundary report per the bus discipline (§ Reporting): FILE bus = a STATUS (what closed, commits, test counts, next). ORG bus = stay silent (notes live in commits + the plan file, NOT the bus).
 4. Every 2-3 phases add the marker `BOUNDARY: ready for /compact` to STATUS - compaction of your session is triggered by the coordinator; you cannot invoke /compact yourself. Goal: compaction happens at a boundary where all knowledge is on disk, not via auto-compaction mid-task from the worst possible point.
 
 ## Reporting
