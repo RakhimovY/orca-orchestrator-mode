@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.0 - 2026-06-14
+
+Borrow pass from a deep-dive of two popular frameworks (crewAI ~54k stars, Task Master ~27k stars). A RED baseline probe first established the skill was already strong: quality-under-cost-pressure, ready-set sequencing, and acceptance criteria all PASSED at baseline, so those were NOT re-added. Three genuine gaps + five user-requested capability borrows shipped; all GREEN-verified on one consolidated 8-trap scenario, zero loopholes, no REFACTOR. Probe log: `docs/probe-log-2026-06-14.md`. Source analysis: `references/crewai.md`, `references/claude-task-master.md` (private KB).
+
+Probe-driven (RED gap → GREEN):
+
+- **Task contract = typed edges, not prose (new section).** RED: the orchestrator dispatched with free-text acceptance and accepted a prose `DONE:` line, capturing no predecessor decisions. New: every task carries `done_when` + a `verify:` command the worker must pass before `worker_done`; `verify` red → self-correct (bounded attempts) before escalating; `worker_done` is a STRUCTURED payload `{summary, files_changed, verify, key_decisions, follow_ups, blockers}`. The coordinator decides FROM the payload, not the diff. (crewAI TaskOutput + Task Master testStrategy.)
+- **Dependency graph: validate + ready-set + handoff (§ Conflicts).** RED: handoff only worked when the predecessor's decision was spoon-fed into the scenario; no graph validation. New: validate the graph (no cycles/dangling) and dispatch ONLY from the ready-set (hard-deps Done + no lease conflict + free zones, recomputed on each `worker_done`); a dependent worker's prompt MUST carry the predecessor's `key_decisions[]` + summary. (Task Master next/dependencies + crewAI Task.context.)
+- **Envelope check-in for active over-runs (§ Reading workers).** RED: liveness covers only SILENT workers; an active worker 3x past estimate defaulted to "let it cook". New: a non-killing checkpoint demand when an active worker runs far past its effort estimate (the rabbit-hole signal liveness misses). (crewAI max_iter/max_execution_time, reframed as a quality guard, not a cost cap.)
+
+User-requested capability borrows (real payoff, not RED-driven; GREEN-verified on recognition scenarios):
+
+- **Optimize for correctness, not token-thrift (§ Models & budget, lead principle).** Makes the already-emergent behavior explicit and scenario-general: never drop a verify/review pass, downgrade a code tier, or skip warranted research to save tokens; economize only on mechanics. The budget guard informs, never self-restricts quality. (User-directed; baseline already GREEN, this hardens it.)
+- **Queue-draining worker (matrix).** A batch of small, same-zone, non-conflicting, sequential tasks → one long-lived drainer (next→do→verify→done→next) instead of N worktrees + N PRs; trade-off (shared branch, serial) stated. (Task Master loop.)
+- **Pre-dispatch prep (§ Conflicts):** an effort estimate (feeds the envelope), a research pre-pass for high-uncertainty tasks, and a one-time spec/PRD → draft tracker issues seeding for approval - never a persistent parallel task file (dual-store drift is exactly the Task Master anti-pattern we reject; the tracker stays canonical). (Task Master analyze-complexity / research / parse-prd.)
+- **Reconcile downstream on drift (§ PR flow).** A merged PR's `key_decisions[]` that invalidate a not-yet-started downstream task → update the task before dispatching its worker. (Task Master update --from.)
+
+Deliberately NOT borrowed: persistent `tasks.json` (a second source of truth vs the tracker), tagged task lists (the tracker handles contexts), crewAI hierarchical manager (our adaptive check-wait loop is stronger), crewAI memory tiers (KB + tracker + git ARE our memory), cost/trace observability dashboards (user is not token-constrained; pure telemetry, no quality payoff).
+
 ## 0.6.2 - 2026-06-13
 
 Knowledge-correction from a live RED (silent decision-gate deadlock).
