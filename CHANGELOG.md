@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 - 2026-06-13
+
+Comms-channel correction (supersedes 0.5.0's "org bus is the default for any tracked worker").
+
+- **Mode-dependent channel choice.** Root cause traced and verified: the orchestrator pane runs inside an Orca-managed terminal whose agent-hook (Stop/UserPromptSubmit/PostToolUse) reports lifecycle to the local runtime, which then PUSH-injects pending org-bus messages into the pane as turns. Confirmed live by the pane's `ORCA_PANE_KEY`/`ORCA_AGENT_HOOK_PORT` env. This push is exactly right for an autonomous wave (the orchestrator is woken to dispatch the next thing; full tracking/DAG/ask-reply) but barges into a LIVE user conversation in the same pane. New rule: **file-bus while the user is co-working live in the panel** (passive, polled, summaries only - zero injects), **org bus for autonomous waves when the user has stepped away**. The 0.5.0 org-bus message-discipline (workers emit only worker_done/escalation/decision_gate/BLOCKED) still applies whenever the org bus is in use.
+- Diagnostic note for future-self: when "why are worker messages appearing in my chat" recurs, it is the Orca agent-hook push, not a skill-rule change - the comms rule has been org-bus-capable since 0.1.0; the variable is the transport actually chosen and whether the user shares the pane.
+
 ## 0.5.0 - 2026-06-13
 
 Knowledge-correction pass from a live wave (user-gated; all decisions confirmed in-session).
